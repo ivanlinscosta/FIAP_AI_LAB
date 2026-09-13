@@ -4,6 +4,7 @@ const state = {
   selectedGroup: null,
   charts: {},
   refreshTimer: null,
+  modalInstance: null,
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -45,6 +46,10 @@ function initLogin() {
 }
 
 function initDashboard() {
+  const modalEl = document.getElementById("group-modal");
+  if (modalEl) {
+    state.modalInstance = new bootstrap.Modal(modalEl);
+  }
   bindDashboardEvents();
   loadDashboardData();
 }
@@ -62,11 +67,6 @@ function bindDashboardEvents() {
   document.getElementById("auto-refresh-toggle").addEventListener("change", configureAutoRefresh);
   document.getElementById("refresh-interval").addEventListener("change", configureAutoRefresh);
   document.getElementById("close-modal").addEventListener("click", closeModal);
-  document.getElementById("group-modal").addEventListener("click", (event) => {
-    if (event.target.dataset.closeModal === "true") {
-      closeModal();
-    }
-  });
   document.getElementById("block-group").addEventListener("click", () => runGroupAction("block"));
   document.getElementById("unblock-group").addEventListener("click", () => runGroupAction("unblock"));
   document.getElementById("regenerate-key").addEventListener("click", regenerateKey);
@@ -96,7 +96,12 @@ async function loadDashboardData() {
 
 function handleFilterChange() {
   const isCustom = document.getElementById("period-filter").value === "custom";
-  document.getElementById("custom-date-range").classList.toggle("hidden", !isCustom);
+  const customRange = document.getElementById("custom-date-range");
+  if (isCustom) {
+    customRange.classList.remove("d-none");
+  } else {
+    customRange.classList.add("d-none");
+  }
   applyFiltersAndRender();
 }
 
@@ -176,7 +181,7 @@ function renderAlerts(alerts, fallbackMessage = "") {
   if (fallbackMessage) {
     clearNode(container);
     const item = document.createElement("div");
-    item.className = "alert-item alert-critical";
+    item.className = "alert alert-critical mb-0 p-3 rounded-3";
     item.textContent = fallbackMessage;
     container.appendChild(item);
     return;
@@ -184,7 +189,7 @@ function renderAlerts(alerts, fallbackMessage = "") {
   if (!alerts.length) {
     clearNode(container);
     const empty = document.createElement("div");
-    empty.className = "empty-state";
+    empty.className = "text-muted p-3";
     empty.textContent = "Nenhum alerta para os filtros atuais.";
     container.appendChild(empty);
     return;
@@ -192,7 +197,7 @@ function renderAlerts(alerts, fallbackMessage = "") {
   clearNode(container);
   alerts.forEach((alert) => {
     const item = document.createElement("div");
-    item.className = `alert-item alert-${alert.severity}`;
+    item.className = `alert alert-${alert.severity} mb-0 p-3 rounded-3`;
     const strong = document.createElement("strong");
     strong.textContent = alert.group;
     item.appendChild(strong);
@@ -210,7 +215,7 @@ function renderGroupsTable() {
     const row = document.createElement("tr");
     const cell = document.createElement("td");
     cell.colSpan = 11;
-    cell.className = "empty-state";
+    cell.className = "text-muted text-center py-4";
     cell.textContent = "Sem grupos para os filtros atuais.";
     row.appendChild(cell);
     tbody.appendChild(row);
@@ -243,30 +248,37 @@ function renderGroupsTable() {
       group.budget_remaining == null ? "-" : formatUsd(group.budget_remaining),
     ].forEach((value) => {
       const cell = document.createElement("td");
+      cell.className = "text-nowrap";
       cell.textContent = value;
       row.appendChild(cell);
     });
 
     const usageCell = document.createElement("td");
-    const progressCell = document.createElement("div");
-    progressCell.className = "progress-cell";
+    const progressContainer = document.createElement("div");
+    progressContainer.className = "d-flex flex-column gap-1";
+    progressContainer.style.minWidth = "120px";
+    
     const track = document.createElement("div");
-    track.className = "progress-track";
+    track.className = "progress";
     const bar = document.createElement("div");
-    bar.className = `progress-bar progress-${progressTone}`;
+    bar.className = `progress-bar bg-fiap-${progressTone}`;
     bar.style.width = `${progressWidth}%`;
     track.appendChild(bar);
-    const label = document.createElement("span");
+    
+    const label = document.createElement("small");
     label.textContent = `${usage.toFixed(1)}%`;
-    progressCell.append(track, label);
-    usageCell.appendChild(progressCell);
+    
+    progressContainer.append(track, label);
+    usageCell.appendChild(progressContainer);
     row.appendChild(usageCell);
 
     const lastCalledCell = document.createElement("td");
+    lastCalledCell.className = "text-nowrap";
     lastCalledCell.textContent = formatDate(callSummary.last_called_at || group.last_called_at);
     row.appendChild(lastCalledCell);
 
     const statusCell = document.createElement("td");
+    statusCell.className = "text-nowrap";
     statusCell.appendChild(createStatusPill(group.status));
     row.appendChild(statusCell);
 
@@ -281,15 +293,11 @@ function renderGroupsTable() {
   });
 }
 
-function renderStatusPill(status) {
-  return `<span class="status-pill"><span class="status-dot tone-${status.tone}"></span>${status.label}</span>`;
-}
-
 function createStatusPill(status) {
   const pill = document.createElement("span");
-  pill.className = "status-pill";
+  pill.className = "badge border border-secondary rounded-pill fw-normal px-2 py-1 d-inline-flex align-items-center";
   const dot = document.createElement("span");
-  dot.className = `status-dot tone-${status.tone}`;
+  dot.className = `status-dot bg-fiap-${status.tone}`;
   pill.append(dot, status.label);
   return pill;
 }
@@ -359,7 +367,9 @@ async function openGroupModal(groupName) {
 
     const detail = await response.json();
     fillGroupModal(detail);
-    show(document.getElementById("group-modal"));
+    if (state.modalInstance) {
+      state.modalInstance.show();
+    }
   } catch (error) {
     window.alert(error.message || "Falha ao carregar detalhes do grupo.");
   }
@@ -393,7 +403,7 @@ function fillGroupModal(detail) {
     const row = document.createElement("tr");
     const cell = document.createElement("td");
     cell.colSpan = 8;
-    cell.className = "empty-state";
+    cell.className = "text-muted text-center py-4";
     cell.textContent = "Sem chamadas recentes.";
     row.appendChild(cell);
     modalCallsBody.appendChild(row);
@@ -433,15 +443,19 @@ function renderDetailList(id, rows) {
   clearNode(node);
   rows.forEach(([term, value]) => {
     const dt = document.createElement("dt");
+    dt.className = "col-sm-6 text-muted fw-normal";
     dt.textContent = term;
     const dd = document.createElement("dd");
+    dd.className = "col-sm-6 text-end mb-2";
     dd.textContent = value;
     node.append(dt, dd);
   });
 }
 
 function closeModal() {
-  hide(document.getElementById("group-modal"));
+  if (state.modalInstance) {
+    state.modalInstance.hide();
+  }
 }
 
 async function runGroupAction(action) {
@@ -632,11 +646,11 @@ function safeJson(response) {
 }
 
 function show(node) {
-  node.classList.remove("hidden");
+  node.classList.remove("d-none");
 }
 
 function hide(node) {
-  node.classList.add("hidden");
+  node.classList.add("d-none");
 }
 
 function round(value) {

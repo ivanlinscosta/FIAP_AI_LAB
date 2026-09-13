@@ -1,210 +1,298 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-bs-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FIAP AI Lab - Professor Console</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="/static/style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script defer src="/static/app.js"></script>
 </head>
 <body data-page="dashboard">
-  <div class="app-shell">
-    <header class="topbar">
-      <div>
-        <p class="eyebrow">FIAP AI Lab</p>
-        <h1>Professor Console</h1>
-        <p class="subtitle">Tools, Automations and Workflows</p>
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container-fluid px-4">
+      <div class="navbar-brand d-flex flex-column">
+        <span class="eyebrow mb-0">FIAP AI Lab</span>
+        <span class="h5 mb-0">Professor Console</span>
       </div>
-      <div class="topbar-actions">
-        <button id="export-csv" class="btn btn-secondary">Exportar CSV</button>
-        <button id="logout-button" class="btn btn-primary">Logout</button>
+      <div class="d-flex gap-2">
+        <button id="export-csv" class="btn btn-outline-secondary">Exportar CSV</button>
+        <button id="logout-button" class="btn btn-fiap-primary">Logout</button>
       </div>
-    </header>
+    </div>
+  </nav>
 
-    <section class="filters-panel card">
-      <div class="filters-grid">
-        <label>
-          <span>Período</span>
-          <select id="period-filter">
-            <option value="1h">Última hora</option>
-            <option value="today">Hoje</option>
-            <option value="24h" selected>Últimas 24h</option>
-            <option value="7d">7 dias</option>
-            <option value="30d">30 dias</option>
-            <option value="custom">Customizado</option>
-          </select>
-        </label>
-        <label>
-          <span>Grupo</span>
-          <select id="group-filter">
-            <option value="all">Todos</option>
-          </select>
-        </label>
-        <label>
-          <span>Modelo</span>
-          <select id="model-filter">
-            <option value="all">Todos</option>
-            <option value="fiap-fast">fiap-fast</option>
-            <option value="fiap-standard">fiap-standard</option>
-            <option value="fiap-embedding">fiap-embedding</option>
-          </select>
-        </label>
-        <label>
-          <span>Auto-refresh</span>
-          <div class="auto-refresh-controls">
-            <input id="auto-refresh-toggle" type="checkbox" checked>
-            <select id="refresh-interval">
-              <option value="10000">10s</option>
-              <option value="30000" selected>30s</option>
-              <option value="60000">60s</option>
-              <option value="manual">Manual</option>
+  <div class="container-fluid px-4 py-4">
+    <!-- Filters -->
+    <section class="card mb-4">
+      <div class="card-body">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-3 col-sm-6">
+            <label for="period-filter" class="form-label">Período</label>
+            <select id="period-filter" class="form-select">
+              <option value="1h">Última hora</option>
+              <option value="today">Hoje</option>
+              <option value="24h" selected>Últimas 24h</option>
+              <option value="7d">7 dias</option>
+              <option value="30d">30 dias</option>
+              <option value="custom">Customizado</option>
             </select>
           </div>
-        </label>
-      </div>
-      <div id="custom-date-range" class="custom-date-range hidden">
-        <label>
-          <span>Início</span>
-          <input id="custom-start" type="datetime-local">
-        </label>
-        <label>
-          <span>Fim</span>
-          <input id="custom-end" type="datetime-local">
-        </label>
+          <div class="col-md-3 col-sm-6">
+            <label for="group-filter" class="form-label">Grupo</label>
+            <select id="group-filter" class="form-select">
+              <option value="all">Todos</option>
+            </select>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <label for="model-filter" class="form-label">Modelo</label>
+            <select id="model-filter" class="form-select">
+              <option value="all">Todos</option>
+              <option value="fiap-fast">fiap-fast</option>
+              <option value="fiap-standard">fiap-standard</option>
+              <option value="fiap-embedding">fiap-embedding</option>
+            </select>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <label class="form-label d-block">Auto-refresh</label>
+            <div class="input-group">
+              <div class="input-group-text bg-fiap-surface-alt border-secondary">
+                <input id="auto-refresh-toggle" class="form-check-input mt-0" type="checkbox" checked aria-label="Toggle auto-refresh">
+              </div>
+              <select id="refresh-interval" class="form-select">
+                <option value="10000">10s</option>
+                <option value="30000" selected>30s</option>
+                <option value="60000">60s</option>
+                <option value="manual">Manual</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div id="custom-date-range" class="row g-3 mt-1 d-none">
+          <div class="col-md-3 col-sm-6">
+            <label for="custom-start" class="form-label">Início</label>
+            <input id="custom-start" type="datetime-local" class="form-control">
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <label for="custom-end" class="form-label">Fim</label>
+            <input id="custom-end" type="datetime-local" class="form-control">
+          </div>
+        </div>
       </div>
     </section>
 
-    <section class="stats-grid">
-      <article class="card stat-card">
-        <span class="stat-label">TOTAL DE REQUISIÇÕES</span>
-        <strong id="stat-requests">0</strong>
-      </article>
-      <article class="card stat-card">
-        <span class="stat-label">TOTAL DE TOKENS</span>
-        <strong id="stat-tokens">0</strong>
-      </article>
-      <article class="card stat-card">
-        <span class="stat-label">CUSTO TOTAL</span>
-        <strong id="stat-cost">US$ 0.00</strong>
-      </article>
-      <article class="card stat-card">
-        <span class="stat-label">GRUPOS ATIVOS</span>
-        <strong id="stat-groups">0 / 0</strong>
-      </article>
-    </section>
-
-    <section class="charts-grid">
-      <article class="card chart-card">
-        <div class="section-head"><h2>Cost per group</h2></div>
-        <canvas id="cost-chart"></canvas>
-      </article>
-      <article class="card chart-card">
-        <div class="section-head"><h2>Tokens per group</h2></div>
-        <canvas id="tokens-chart"></canvas>
-      </article>
-      <article class="card chart-card chart-card-wide">
-        <div class="section-head"><h2>Consumption over time</h2></div>
-        <canvas id="timeline-chart"></canvas>
-      </article>
-      <article class="card chart-card">
-        <div class="section-head"><h2>Model distribution</h2></div>
-        <canvas id="model-chart"></canvas>
-      </article>
-    </section>
-
-    <section class="card">
-      <div class="section-head">
-        <h2>Alertas</h2>
-        <span id="last-updated" class="muted-text">Atualizando...</span>
+    <!-- Stats -->
+    <section class="row g-4 mb-4">
+      <div class="col-xl-3 col-md-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <div class="stat-label">TOTAL DE REQUISIÇÕES</div>
+            <div id="stat-requests" class="stat-value mt-2">0</div>
+          </div>
+        </div>
       </div>
-      <div id="alerts-container" class="alerts-list"></div>
+      <div class="col-xl-3 col-md-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <div class="stat-label">TOTAL DE TOKENS</div>
+            <div id="stat-tokens" class="stat-value mt-2">0</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-md-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <div class="stat-label">CUSTO TOTAL</div>
+            <div id="stat-cost" class="stat-value mt-2">US$ 0.00</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-md-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <div class="stat-label">GRUPOS ATIVOS</div>
+            <div id="stat-groups" class="stat-value mt-2">0 / 0</div>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <section class="card">
-      <div class="section-head">
-        <h2>Grupos</h2>
+    <!-- Charts -->
+    <section class="row g-4 mb-4">
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Cost per group</h5>
+          </div>
+          <div class="card-body">
+            <div class="chart-container">
+              <canvas id="cost-chart"></canvas>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Grupo</th>
-              <th>Requests</th>
-              <th>Input Tokens</th>
-              <th>Output Tokens</th>
-              <th>Total Tokens</th>
-              <th>Custo</th>
-              <th>Budget</th>
-              <th>Budget Restante</th>
-              <th>% Utilizado</th>
-              <th>Última Chamada</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="groups-table-body"></tbody>
-        </table>
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Tokens per group</h5>
+          </div>
+          <div class="card-body">
+            <div class="chart-container">
+              <canvas id="tokens-chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-12">
+        <div class="card h-100">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Consumption over time</h5>
+          </div>
+          <div class="card-body">
+            <div class="chart-container">
+              <canvas id="timeline-chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-12">
+        <div class="card h-100">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Model distribution</h5>
+          </div>
+          <div class="card-body">
+            <div class="chart-container">
+              <canvas id="model-chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Alerts -->
+    <section class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Alertas</h5>
+        <small id="last-updated" class="text-muted">Atualizando...</small>
+      </div>
+      <div class="card-body">
+        <div id="alerts-container" class="d-flex flex-column gap-2"></div>
+      </div>
+    </section>
+
+    <!-- Groups Table -->
+    <section class="card mb-4">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Grupos</h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive table-responsive-bounded">
+          <table class="table table-dark table-hover mb-0 align-middle">
+            <thead class="sticky-top bg-fiap-surface">
+              <tr>
+                <th>Grupo</th>
+                <th>Requests</th>
+                <th>Input Tokens</th>
+                <th>Output Tokens</th>
+                <th>Total Tokens</th>
+                <th>Custo</th>
+                <th>Budget</th>
+                <th>Budget Restante</th>
+                <th>% Utilizado</th>
+                <th>Última Chamada</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="groups-table-body"></tbody>
+          </table>
+        </div>
       </div>
     </section>
   </div>
 
-  <div id="group-modal" class="modal hidden" aria-hidden="true">
-    <div class="modal-backdrop" data-close-modal="true"></div>
-    <div class="modal-panel">
-      <button id="close-modal" class="icon-button" type="button">×</button>
-      <div class="section-head">
-        <div>
-          <p class="eyebrow">Detalhes do grupo</p>
-          <h2 id="modal-group-name">grupo</h2>
-        </div>
-      </div>
-
-      <div class="detail-grid">
-        <div class="card detail-card">
-          <h3>Budget info</h3>
-          <dl id="budget-details" class="detail-list"></dl>
-        </div>
-        <div class="card detail-card">
-          <h3>Token usage</h3>
-          <dl id="usage-details" class="detail-list"></dl>
-        </div>
-        <div class="card detail-card">
-          <h3>Admin controls</h3>
-          <div class="admin-actions">
-            <button id="block-group" class="btn btn-danger">Block</button>
-            <button id="unblock-group" class="btn btn-secondary">Unblock</button>
-            <form id="budget-form" class="inline-form">
-              <input id="budget-input" type="number" min="0" step="0.01" placeholder="Novo budget em US$">
-              <button class="btn btn-primary" type="submit">Atualizar budget</button>
-            </form>
-            <button id="regenerate-key" class="btn btn-danger">Regenerate key</button>
-            <div id="regenerated-key-box" class="regenerated-key-box hidden"></div>
+  <!-- Group Modal -->
+  <div class="modal fade" id="group-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow mb-1">Detalhes do grupo</p>
+            <h4 class="modal-title" id="modal-group-name">grupo</h4>
           </div>
+          <button type="button" class="btn-close btn-close-white" id="close-modal" aria-label="Close"></button>
         </div>
-        <div class="card detail-card">
-          <h3>Model distribution</h3>
-          <canvas id="modal-model-chart"></canvas>
-        </div>
-      </div>
+        <div class="modal-body modal-body-bounded">
+          <div class="row g-4 mb-4">
+            <div class="col-md-6">
+              <div class="card h-100">
+                <div class="card-header"><h6 class="mb-0">Budget info</h6></div>
+                <div class="card-body">
+                  <dl id="budget-details" class="row mb-0"></dl>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card h-100">
+                <div class="card-header"><h6 class="mb-0">Token usage</h6></div>
+                <div class="card-body">
+                  <dl id="usage-details" class="row mb-0"></dl>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card h-100">
+                <div class="card-header"><h6 class="mb-0">Admin controls</h6></div>
+                <div class="card-body">
+                  <div class="d-flex flex-wrap gap-2 mb-3">
+                    <button id="block-group" class="btn btn-danger">Block</button>
+                    <button id="unblock-group" class="btn btn-secondary">Unblock</button>
+                    <button id="regenerate-key" class="btn btn-danger">Regenerate key</button>
+                  </div>
+                  <form id="budget-form" class="d-flex gap-2 mb-3">
+                    <input id="budget-input" type="number" min="0" step="0.01" class="form-control" placeholder="Novo budget em US$">
+                    <button class="btn btn-fiap-primary text-nowrap" type="submit">Atualizar budget</button>
+                  </form>
+                  <div id="regenerated-key-box" class="regenerated-key-box d-none"></div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card h-100">
+                <div class="card-header"><h6 class="mb-0">Model distribution</h6></div>
+                <div class="card-body">
+                  <div class="chart-container" style="height: 200px;">
+                    <canvas id="modal-model-chart"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-      <div class="card">
-        <div class="section-head"><h3>Recent calls</h3></div>
-        <div class="table-wrap modal-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Timestamp</th>
-                <th>Model</th>
-                <th>Input Tokens</th>
-                <th>Output Tokens</th>
-                <th>Total Tokens</th>
-                <th>Cost</th>
-                <th>Latency</th>
-                <th>HTTP Status</th>
-              </tr>
-            </thead>
-            <tbody id="recent-calls-body"></tbody>
-          </table>
+          <div class="card">
+            <div class="card-header"><h6 class="mb-0">Recent calls</h6></div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0 align-middle">
+                  <thead class="bg-fiap-surface">
+                    <tr>
+                      <th>Timestamp</th>
+                      <th>Model</th>
+                      <th>Input Tokens</th>
+                      <th>Output Tokens</th>
+                      <th>Total Tokens</th>
+                      <th>Cost</th>
+                      <th>Latency</th>
+                      <th>HTTP Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recent-calls-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -228,7 +228,13 @@ def normalize_call_record(record: dict[str, Any], alias_lookup: dict[str, str]) 
         or record.get("date")
     )
     end_time = parse_datetime(record.get("endTime") or record.get("end_time") or record.get("completed_at"))
-    model = str(record.get("model") or record.get("model_name") or record.get("custom_llm_provider") or "unknown")
+    model = str(
+        metadata.get("original_model_group")
+        or record.get("model")
+        or record.get("model_name")
+        or record.get("custom_llm_provider")
+        or "unknown"
+    )
     input_tokens = safe_int(record.get("prompt_tokens") or record.get("input_tokens"))
     output_tokens = safe_int(record.get("completion_tokens") or record.get("output_tokens"))
     total_tokens = safe_int(record.get("total_tokens")) or input_tokens + output_tokens
@@ -240,6 +246,8 @@ def normalize_call_record(record: dict[str, Any], alias_lookup: dict[str, str]) 
     group_name = extract_group_name(
         metadata.get("group"),
         metadata.get("group_name"),
+        metadata.get("user_api_key_alias"),
+        metadata.get("api_key_alias"),
         record.get("group"),
         record.get("key_alias"),
         record.get("api_key_alias"),
@@ -308,15 +316,12 @@ def build_group_base(key_record: dict[str, Any]) -> dict[str, Any]:
 
 async def fetch_dashboard_snapshot() -> dict[str, Any]:
     lookback_days = int(os.getenv("DASHBOARD_LOOKBACK_DAYS", "90"))
-    end_date = now_utc()
-    start_date = end_date - timedelta(days=lookback_days)
 
     try:
         keys_raw, spend_raw = await asyncio.gather(
             litellm_service.get_keys(),
             litellm_service.get_spend(
-                start_date=start_date.date().isoformat(),
-                end_date=end_date.date().isoformat(),
+                last_n_hours=lookback_days * 24,
                 summarize="false",
             ),
         )

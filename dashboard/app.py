@@ -41,6 +41,12 @@ class LoginPayload(BaseModel):
     password: str = ""
 
 
+class SetupPayload(BaseModel):
+    username: str = ""
+    password: str = ""
+    confirm_password: str = ""
+
+
 class BudgetPayload(BaseModel):
     max_budget: float = Field(..., ge=0)
 
@@ -548,7 +554,16 @@ async def index(request: Request):
 async def login_page(request: Request):
     if auth_service.is_authenticated(request):
         return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+    if not auth_service.profile_exists():
+        return RedirectResponse(url="/setup", status_code=status.HTTP_303_SEE_OTHER)
     return FileResponse(TEMPLATES_DIR / "login.html")
+
+
+@app.get("/setup")
+async def setup_page():
+    if auth_service.profile_exists():
+        return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+    return FileResponse(TEMPLATES_DIR / "setup.html")
 
 
 @app.post("/api/login")
@@ -558,6 +573,25 @@ async def login(payload: LoginPayload):
     if not auth_service.verify_credentials(payload.username, payload.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuário ou senha inválidos")
 
+    response = JSONResponse({"success": True})
+    auth_service.set_session_cookie(response, auth_service.create_session())
+    return response
+
+
+@app.post("/api/setup")
+async def setup(payload: SetupPayload):
+    if auth_service.profile_exists():
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Perfil do professor já configurado")
+
+    username = payload.username.strip()
+    if not username:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Informe um nome de usuário")
+    if len(payload.password) < 8:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="A senha deve ter pelo menos 8 caracteres")
+    if payload.password != payload.confirm_password:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="As senhas não coincidem")
+
+    auth_service.create_profile(username, payload.password)
     response = JSONResponse({"success": True})
     auth_service.set_session_cookie(response, auth_service.create_session())
     return response
@@ -751,7 +785,8 @@ async def health_check():
         "litellm": litellm_service.is_configured(),
         **auth_service.config_status(),
     }
-    missing = [name for name, ready in configured.items() if ready is False]
+    required_checks = {"litellm", "admin_credentials"}
+    missing = [name for name, ready in configured.items() if name in required_checks and ready is False]
     status_code = status.HTTP_200_OK if not missing else status.HTTP_503_SERVICE_UNAVAILABLE
     return JSONResponse(
         status_code=status_code,

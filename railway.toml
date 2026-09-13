@@ -1,0 +1,14 @@
+# ==========================================
+# Railway Configuration - FIAP AI Lab
+# ==========================================
+# This file configures the Railway deployment.
+# Services are configured via Railway Dashboard.
+
+[build]
+builder = "dockerfile"
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 10
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3

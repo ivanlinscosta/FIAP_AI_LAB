@@ -1,0 +1,43 @@
+{
+  "name": "FIAP - 00 - Teste do AI Gateway",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "When clicking Execute Workflow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://SEU-GATEWAY/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "Authorization", "value": "Bearer COLE-A-CHAVE-VIRTUAL-DO-GRUPO"},
+            {"name": "Content-Type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\"model\":\"fiap-fast\",\"messages\":[{\"role\":\"user\",\"content\":\"Explique em uma frase o que é um workflow.\"}],\"max_tokens\":120}"
+      },
+      "id": "http-gateway",
+      "name": "FIAP AI Gateway",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 300]
+    }
+  ],
+  "connections": {
+    "When clicking Execute Workflow": {
+      "main": [[{"node": "FIAP AI Gateway", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "versionId": "00000000-0000-0000-0000-000000000001"
+}

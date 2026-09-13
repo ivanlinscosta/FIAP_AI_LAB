@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FIAP AI Lab - Login</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script defer src="/static/app.js"></script>
+</head>
+<body data-page="login">
+  <main class="login-shell">
+    <section class="login-card card">
+      <p class="eyebrow">FIAP AI Lab</p>
+      <h1>Professor Console</h1>
+      <p class="subtitle">Tools, Automations and Workflows</p>
+
+      <form id="login-form" class="login-form">
+        <label>
+          <span>Username</span>
+          <input id="username" name="username" type="text" autocomplete="username" required>
+        </label>
+        <label>
+          <span>Password</span>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+        </label>
+        <button class="btn btn-primary" type="submit">Login</button>
+      </form>
+
+      <p id="login-error" class="form-error hidden"></p>
+    </section>
+  </main>
+</body>
+</html>

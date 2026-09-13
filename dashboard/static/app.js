@@ -346,7 +346,7 @@ function upsertChart(id, type, data) {
       },
       scales: type === "doughnut" ? {} : {
         x: { ticks: { color: "#888" }, grid: { color: "rgba(255,255,255,0.05)" } },
-        y: { ticks: { color: "#888" }, grid: { color: "rgba(255,255,255,0.05)" } },
+        y: { ticks: { color: "#888", callback: (v) => Number.isInteger(v) ? String(v) : v >= 0.001 ? Number(v).toFixed(4) : v === 0 ? "0" : Number(v).toFixed(6) }, grid: { color: "rgba(255,255,255,0.05)" } },
       },
     },
   });
@@ -580,7 +580,7 @@ function aggregateTimeline(calls) {
     buckets[key] = (buckets[key] || 0) + call.cost;
   });
   const labels = Object.keys(buckets).sort();
-  return { labels, costs: labels.map((label) => round(buckets[label])) };
+  return { labels, costs: labels.map((label) => Math.round(buckets[label] * 1e6) / 1e6) };
 }
 
 function aggregateModels(calls) {
@@ -625,7 +625,10 @@ function formatCompactNumber(value) {
 }
 
 function formatUsd(value) {
-  return `US$ ${Number(value || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const amount = Number(value || 0);
+  // Valores abaixo de 1 centavo precisam de mais casas para não exibir "US$ 0.00"
+  const maxDigits = amount > 0 && amount < 0.01 ? 6 : 2;
+  return `US$ ${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: maxDigits })}`;
 }
 
 function formatNumber(value) {
